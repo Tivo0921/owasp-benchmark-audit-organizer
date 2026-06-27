@@ -1,0 +1,15 @@
+{
+  "test_name": "BenchmarkTest00436",
+  "model_or_agent": "claude-code",
+  "model_name": "claude-opus-4-8",
+  "web_search_used": false,
+  "is_vulnerable": true,
+  "bug_type": "SQL Injection",
+  "cwe": "CWE-89",
+  "vulnerable_file": "BenchmarkTest00436.java",
+  "vulnerable_function": "doPost",
+  "root_cause": "Looks like tainted input reaches a SQL query.",
+  "security_impact": "Potential SQL injection.",
+  "patch_strategy": "Use prepared statements.",
+  "confidence": 0.5
+}

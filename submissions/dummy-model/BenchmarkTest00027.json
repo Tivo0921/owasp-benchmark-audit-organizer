@@ -1,0 +1,15 @@
+{
+  "test_name": "BenchmarkTest00027",
+  "model_or_agent": "claude-code",
+  "model_name": "claude-opus-4-8",
+  "web_search_used": false,
+  "is_vulnerable": true,
+  "bug_type": "SQL Injection",
+  "cwe": "CWE-89",
+  "vulnerable_file": "BenchmarkTest00027.java",
+  "vulnerable_function": "doPost",
+  "root_cause": "User-controlled request parameter is concatenated directly into a SQL statement passed to Statement.executeUpdate without parameterization.",
+  "security_impact": "An attacker can inject arbitrary SQL, reading or modifying database contents.",
+  "patch_strategy": "Use a PreparedStatement with bound parameters instead of string concatenation.",
+  "confidence": 0.9
+}

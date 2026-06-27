@@ -1,0 +1,30 @@
+[project]
+name = "owasp-benchmark-audit"
+version = "0.1.0"
+description = "OWASP BenchmarkJava based harness to compare the code-audit ability of AI coding agents"
+readme = "README.md"
+requires-python = ">=3.12"
+# Intentionally dependency-free: every script uses only the Python standard library
+# (csv, json, argparse, pathlib, dataclasses) so the harness runs anywhere.
+dependencies = []
+
+[project.optional-dependencies]
+dev = [
+    "ruff>=0.5",
+    "black>=24.0",
+]
+
+[tool.black]
+line-length = 100
+target-version = ["py312"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM"]
+ignore = []
+
+[tool.ruff.lint.isort]
+known-first-party = ["scripts"]

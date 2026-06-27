@@ -1,0 +1,21 @@
+# External OWASP BenchmarkJava repository (do NOT commit – cloned locally)
+third_party/
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.env
+*.egg-info/
+.ruff_cache/
+.pytest_cache/
+.mypy_cache/
+
+# OS / editor
+.DS_Store
+.idea/
+.vscode/
+
+# Local submission scratch (keep the directory, ignore real team data if desired)
+# submissions/*/

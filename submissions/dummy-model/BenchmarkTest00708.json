@@ -1,0 +1,15 @@
+{
+  "test_name": "BenchmarkTest00708",
+  "model_or_agent": "claude-code",
+  "model_name": "claude-opus-4-8",
+  "web_search_used": false,
+  "is_vulnerable": true,
+  "bug_type": "Weak Hash",
+  "cwe": "CWE-327",
+  "vulnerable_file": "BenchmarkTest00708.java",
+  "vulnerable_function": "doPost",
+  "root_cause": "A broken/weak hashing algorithm (e.g. MD5/SHA-1) is used to hash sensitive data.",
+  "security_impact": "Weak hashes are susceptible to collision and pre-image attacks.",
+  "patch_strategy": "Use a strong algorithm such as SHA-256 or a password hash like bcrypt/PBKDF2.",
+  "confidence": 0.8
+}

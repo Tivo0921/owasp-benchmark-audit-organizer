@@ -1,0 +1,15 @@
+{
+  "test_name": "",
+  "model_or_agent": "",
+  "model_name": "",
+  "web_search_used": false,
+  "is_vulnerable": null,
+  "bug_type": "",
+  "cwe": "",
+  "vulnerable_file": "",
+  "vulnerable_function": "",
+  "root_cause": "",
+  "security_impact": "",
+  "patch_strategy": "",
+  "confidence": 0.0
+}

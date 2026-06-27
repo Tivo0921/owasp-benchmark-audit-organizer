@@ -1,0 +1,3 @@
+team,model_or_agent,model_name,total_cases,total_score,max_score,vulnerability_accuracy,cwe_accuracy,category_accuracy
+claude-opus-4-8,claude-code,claude-opus-4-8,20,60,60,1.0,1.0,1.0
+Haiku-4.5,claude-haiku-4-5-20251001,Haiku 4.5,20,57,60,1.0,0.85,1.0
