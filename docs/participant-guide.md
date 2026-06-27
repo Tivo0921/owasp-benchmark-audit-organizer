@@ -27,6 +27,24 @@ For each case we score whether you can:
 4. explain the root cause (`root_cause`), and
 5. propose a fix (`patch_strategy`).
 
+## How scoring works (read carefully)
+
+Each case is worth **3 points**: `is_vulnerable` (1) + `cwe` (1) +
+`bug_type`/category (1). `root_cause` and `patch_strategy` are recorded for
+qualitative review, not auto-scored.
+
+### IMPORTANT — cases that are NOT vulnerable (false positives)
+
+Every case **belongs to one vulnerability category even when the code is safe**.
+The safe cases are deliberate false positives. So for a case you judge **safe**:
+
+- set `is_vulnerable: false`, **and**
+- still fill `bug_type` and `cwe` with **the category the code is about**.
+
+`is_vulnerable` answers *"is this actually exploitable?"*; `bug_type`/`cwe`
+answer *"which vulnerability class is this code concerned with?"*. **Do not leave
+`cwe`/`bug_type` blank on safe cases** — you lose those 2 points otherwise.
+
 ## Which AI agents you may use
 
 You may use any AI coding agent or LLM-based assistant (e.g. Claude Code, an

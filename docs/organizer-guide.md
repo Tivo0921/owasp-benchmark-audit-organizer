@@ -85,25 +85,32 @@ Each case is worth 3 points (`is_vulnerable`, `cwe`, `bug_type`/category).
 Output: `results/score_summary.csv` with per-team totals and per-dimension
 accuracy.
 
-## Critical: do NOT show participants `expectedresults-1.2.csv`
+## Critical: integrity comes from sandboxing the agent, not from secrecy
 
-The entire validity of the experiment depends on participants never seeing the
-ground truth. Specifically:
+The OWASP Benchmark answer key is **already public** upstream, and this repo is
+published openly so participants can self-grade. So validity does **not** rest
+on hiding `expectedresults-1.2.csv`. It rests on the **evaluated agent not
+looking anything up during the run**:
 
-- Keep `organizer/` out of any participant-shared bundle.
-- Only ever distribute `benchmark/public/`.
-- If you host this in version control, put `organizer/` in a **private** repo,
-  or strip it from the participant copy.
+- **Web search / browsing off** (the distributed repo ships a Claude Code
+  `.claude/settings.json` denying `WebSearch`/`WebFetch`).
+- **File access scoped to the `cases/` folder only** — the agent must not open
+  this organizer repo, sibling directories, or the upstream OWASP repo.
+- Run each evaluated agent in a **fresh, isolated session** seeded only with the
+  distributed cases.
+
+If you publish a leaderboard, **re-grade the submissions yourself** instead of
+trusting self-reported scores.
 
 ## Critical: separate the benchmark-building AI from the evaluated AI
 
 Use a **different AI session/account** to build the benchmark than the one you
-later evaluate. If the same context is shared, an evaluated agent could be
-contaminated by the answer key or the selection. In practice:
+later evaluate, so the evaluated agent is never contaminated by the answer key
+or selection through shared context:
 
 - Do the download/select/prepare steps in one session.
-- Run each evaluated agent in a fresh, isolated session that only sees
-  `benchmark/public/`.
+- Run each evaluated agent in a fresh, sandboxed session that only sees the
+  distributed `cases/`.
 
 ## Re-running / new rounds
 

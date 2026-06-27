@@ -1,23 +1,35 @@
-# organizer/ — ORGANIZER ONLY (do not distribute)
+# organizer/ — answer key & grading inputs
 
-Everything in this directory is private to the organizers. **Never** share it
-with participants and never copy it into `benchmark/public/`.
+This directory holds the ground-truth answer key and the per-round selection
+used for grading.
+
+## Important: secrecy is NOT the integrity mechanism
+
+The OWASP Benchmark answer key (`expectedresults-1.2.csv`) is **already publicly
+available** in the upstream project, so this repository is published openly to
+let participants self-grade. **The validity of a closed-book result does not
+depend on the answers being secret** — it depends on the **evaluated agent not
+looking anything up during the run**:
+
+- web search / browsing **off**, and
+- file access scoped to the distributed `cases/` only (no access to this repo).
+
+See `docs/experiment-design.md` and the participant guide's *Web search rule*.
 
 ## Contents
 
-- `expected/expectedresults-1.2.csv` — the official OWASP Benchmark answer key.
-  Staged here by `scripts/download_owasp_benchmark.py`. This is the ground truth
-  used for grading. **Keeping this hidden from participants is the single most
-  important rule of the experiment.**
-- `selected_cases.csv` — the subset chosen for the current round, written by
-  `scripts/select_cases.py`. Columns: `test_name,category,real_vulnerability,cwe`.
-  It contains labels, so it is organizer-only too.
+- `expected/expectedresults-1.2.csv` — the official OWASP Benchmark answer key
+  (GPL-2.0), staged by `scripts/download_owasp_benchmark.py`. Ground truth for
+  grading.
+- `selected_cases.csv` — the cases chosen for the current round
+  (`scripts/select_cases.py`). Columns:
+  `test_name,category,real_vulnerability,cwe`.
+- `selected_cases_pilot20.csv` — record of the 20-case pilot round.
 
 ## Reminders
 
-- Run the benchmark-building work (selection, packaging) in a **different AI
-  session / account** from any agent you later evaluate, so an evaluated agent
-  never sees the answer key or selection through shared context.
-- If you commit this repository, confirm `benchmark/public/` contains no labels
-  and that `third_party/` is git-ignored. The answer key under `organizer/`
-  may be committed to a *private* repo only.
+- Build the benchmark in a **different AI session** from any agent you evaluate,
+  and run each evaluated agent **sandboxed** (no web, only the `cases/` folder).
+- For an official leaderboard, **re-grade submissions yourself** rather than
+  trusting self-reported scores (self-grading is for convenience/transparency).
+- `third_party/` (the upstream clone) stays git-ignored — never committed.

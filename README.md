@@ -21,10 +21,16 @@ no DAST is run — everything is answerable by reading the code.
 
 ## Why this design
 
-- **Answer key stays private.** `expectedresults-1.2.csv` lives only under
-  `organizer/` and is never copied into the participant-facing folder.
+- **Answer key is out of the distributed bundle.** `expectedresults-1.2.csv`
+  lives under `organizer/` and is never copied into the participant-facing
+  `cases/` folder. (The OWASP answer key is itself public upstream, so this repo
+  is published openly for self-grading — integrity comes from sandboxing the
+  evaluated agent, not from secrecy. See `docs/organizer-guide.md`.)
 - **Participants get code only.** They receive the selected `.java` files plus a
   JSON report template — nothing that reveals the ground-truth label.
+- **Closed-book by agent isolation.** A meaningful run requires the evaluated
+  agent to use **no web search** and read **only the distributed `cases/`** —
+  not the secrecy of the answer key.
 - **Grading is mechanical.** Submitted JSON is compared field-by-field to the
   answer key.
 
@@ -43,7 +49,7 @@ no DAST is run — everything is answerable by reading the code.
 │   │   ├── cases/                # selected BenchmarkTestNNNNN.java
 │   │   └── report_template.json
 │   └── README.md
-├── organizer/                    # ORGANIZER ONLY — do not share
+├── organizer/                    # answer key + per-round selection
 │   ├── expected/
 │   │   └── expectedresults-1.2.csv
 │   ├── selected_cases.csv
@@ -68,7 +74,7 @@ no DAST is run — everything is answerable by reading the code.
 ## Quick start (organizer)
 
 ```bash
-# 1. Fetch OWASP BenchmarkJava and stage the (private) answer key.
+# 1. Fetch OWASP BenchmarkJava and stage the answer key.
 python scripts/download_owasp_benchmark.py
 
 # 2. Select a balanced 20-case subset (deterministic, fixed seed).
@@ -82,8 +88,10 @@ python scripts/grade_submissions.py
 cat results/score_summary.csv
 ```
 
-Distribute the contents of `benchmark/public/` to participants. Keep
-`organizer/` and `third_party/` private.
+Distribute the contents of `benchmark/public/` to participants (or point them at
+the public release repo). `third_party/` (the upstream clone) stays git-ignored.
+Participants may self-grade with this repo; for an official leaderboard, re-grade
+their submissions yourself.
 
 ## Scoring
 
@@ -130,5 +138,16 @@ OWASP Benchmark is a *synthetic* benchmark. Strong scores here indicate solid
 **baseline code-audit ability**, not direct real-world OSS bug-bounty
 performance. See `docs/experiment-design.md` for positioning.
 
-The OWASP Benchmark source is licensed GPL-2.0 and is cloned into
-`third_party/` (git-ignored) — it is not redistributed by this repository.
+## Attribution & License
+
+This repository redistributes OWASP Benchmark material — the Java testcases
+under `benchmark/public/cases/` and the answer key
+`organizer/expected/expectedresults-1.2.csv` — which are part of the
+**OWASP Benchmark Project** (© Dave Wichers / OWASP) and are licensed
+**GPL-2.0**. They are redistributed **unmodified**, with original file headers
+intact; the full license text is in [`LICENSE`](LICENSE). Accordingly this
+repository is distributed under **GPL-2.0**. The full upstream clone lives in
+`third_party/` (git-ignored) and is not committed here.
+
+- Upstream: https://github.com/OWASP-Benchmark/BenchmarkJava
+- Project: https://owasp.org/www-project-benchmark/
