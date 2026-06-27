@@ -37,6 +37,8 @@ import sys
 from pathlib import Path
 
 from benchmark_common import (
+    BENCHMARK_PROPERTIES,
+    HELPERS_DIR,
     PUBLIC_DIR,
     SELECTED_CASES_CSV,
     TESTCASE_DIR,
@@ -109,6 +111,39 @@ def copy_cases(test_names: list[str], cases_dir: Path) -> tuple[int, list[str]]:
     return copied, missing
 
 
+def copy_dependencies(public_dir: Path) -> tuple[int, list[str]]:
+    """Copy the shared dependencies the testcases reference.
+
+    The testcases reference, by fully-qualified name, the
+    ``org.owasp.benchmark.helpers`` package and runtime configuration in
+    ``benchmark.properties``. These hold the actual data sources/sinks and the
+    hash/crypto algorithm choices that determine whether a case is vulnerable,
+    so an agent cannot judge correctly without them.
+
+    Returns ``(helper_files_copied, problems)``.
+    """
+    problems: list[str] = []
+
+    # 1) helpers/ package (recursively, including entities/ and filters/).
+    helpers_out = public_dir / "helpers"
+    if helpers_out.exists():
+        shutil.rmtree(helpers_out)
+    helper_count = 0
+    if HELPERS_DIR.is_dir():
+        shutil.copytree(HELPERS_DIR, helpers_out)
+        helper_count = len(list(helpers_out.rglob("*.java")))
+    else:
+        problems.append(f"helpers package not found at {HELPERS_DIR}")
+
+    # 2) benchmark.properties (hash/crypto algorithm definitions, etc.).
+    if BENCHMARK_PROPERTIES.is_file():
+        shutil.copy2(BENCHMARK_PROPERTIES, public_dir / "benchmark.properties")
+    else:
+        problems.append(f"benchmark.properties not found at {BENCHMARK_PROPERTIES}")
+
+    return helper_count, problems
+
+
 def write_report_template(template_path: Path) -> None:
     template_path.parent.mkdir(parents=True, exist_ok=True)
     with template_path.open("w", encoding="utf-8") as fh:
@@ -126,11 +161,20 @@ def write_public_readme(test_names: list[str], readme_path: Path) -> None:
         "## Contents",
         "",
         "- `cases/` — Java testcases to audit (one `BenchmarkTestNNNNN.java` each).",
+        "- `helpers/` — shared source the testcases reference by fully-qualified",
+        "  name (package `org.owasp.benchmark.helpers`). **Read these** — they",
+        "  define the real data sources/sinks (e.g.",
+        "  `SeparateClassRequest.getTheValue()` returns a constant safe value,",
+        "  while `getTheParameter()` is a genuine tainted source).",
+        "- `benchmark.properties` — configuration the helpers load (e.g. which",
+        "  hash/crypto algorithm is actually used). Needed to judge `hash` and",
+        "  `crypto` cases correctly.",
         "- `report_template.json` — the JSON schema to copy per case.",
         "",
         "## Your task",
         "",
-        "For each Java file in `cases/`, read the code and decide whether it",
+        "For each Java file in `cases/`, read the code (following references into",
+        "`helpers/` and `benchmark.properties` as needed) and decide whether it",
         "contains a real vulnerability. Produce **one JSON file per case** named",
         "after the test (e.g. `BenchmarkTest00001.json`), following",
         "`report_template.json`.",
@@ -179,6 +223,7 @@ def main(argv: list[str] | None = None) -> int:
     try:
         reset_public_cases(cases_dir)
         copied, missing = copy_cases(test_names, cases_dir)
+        helper_count, dep_problems = copy_dependencies(public_dir)
     except FileNotFoundError as exc:
         print(f"[error] {exc}", file=sys.stderr)
         return 1
@@ -190,10 +235,14 @@ def main(argv: list[str] | None = None) -> int:
     if missing:
         print(f"[warn] {len(missing)} case(s) not found in benchmark: {', '.join(missing)}",
               file=sys.stderr)
+    print(f"[ok] copied {helper_count} helper source files -> {public_dir / 'helpers'}")
+    print(f"[ok] copied benchmark.properties -> {public_dir / 'benchmark.properties'}")
+    for problem in dep_problems:
+        print(f"[warn] dependency missing: {problem}", file=sys.stderr)
     print(f"[ok] wrote {template_path}")
     print(f"[ok] wrote {readme_path}")
     print("\nThe public folder is safe to distribute (no answer labels included).")
-    return 0 if copied > 0 else 1
+    return 0 if copied > 0 and not dep_problems else 1
 
 
 if __name__ == "__main__":

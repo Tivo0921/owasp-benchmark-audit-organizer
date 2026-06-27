@@ -6,11 +6,20 @@ reveals the answers.
 ## Contents
 
 - `cases/` — Java testcases to audit (one `BenchmarkTestNNNNN.java` each).
+- `helpers/` — shared source the testcases reference by fully-qualified
+  name (package `org.owasp.benchmark.helpers`). **Read these** — they
+  define the real data sources/sinks (e.g.
+  `SeparateClassRequest.getTheValue()` returns a constant safe value,
+  while `getTheParameter()` is a genuine tainted source).
+- `benchmark.properties` — configuration the helpers load (e.g. which
+  hash/crypto algorithm is actually used). Needed to judge `hash` and
+  `crypto` cases correctly.
 - `report_template.json` — the JSON schema to copy per case.
 
 ## Your task
 
-For each Java file in `cases/`, read the code and decide whether it
+For each Java file in `cases/`, read the code (following references into
+`helpers/` and `benchmark.properties` as needed) and decide whether it
 contains a real vulnerability. Produce **one JSON file per case** named
 after the test (e.g. `BenchmarkTest00001.json`), following
 `report_template.json`.

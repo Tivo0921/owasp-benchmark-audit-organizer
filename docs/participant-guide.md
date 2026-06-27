@@ -17,6 +17,20 @@ vulnerable. Some cases are genuinely vulnerable; others are deliberate
 *false positives* that look risky but are safe. Deciding which is which is the
 core of the task.
 
+## Repository contents — READ THE DEPENDENCIES
+
+The testcases reference shared code and config by fully-qualified name, and the
+verdict often depends on it. The distribution therefore includes:
+
+- `cases/` — the `BenchmarkTestNNNNN.java` files to audit.
+- `helpers/` — source for the `org.owasp.benchmark.helpers` package (e.g.
+  `SeparateClassRequest.getTheValue()` returns a constant **safe** value while
+  `getTheParameter()` is a **tainted** source; `DatabaseHelper`/`LDAPManager`
+  are the real sinks). **Read these to resolve sources/sinks.**
+- `benchmark.properties` — config the helpers load, e.g. which hash/crypto
+  algorithm is actually used (`MD5` = weak vs `SHA-256` = strong). **Hash/crypto
+  verdicts depend on this file.**
+
 ## What you are evaluated on
 
 For each case we score whether you can:

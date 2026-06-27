@@ -27,6 +27,15 @@ TESTCASE_DIR: Path = (
     BENCHMARK_CLONE_DIR / "src" / "main" / "java" / "org" / "owasp" / "benchmark" / "testcode"
 )
 
+# Shared dependencies the testcases reference by fully-qualified name:
+# the org.owasp.benchmark.helpers package and the runtime configuration that
+# helpers read (which hash/crypto algorithm is used, etc.). These determine the
+# ground truth and MUST be distributed alongside the testcases.
+HELPERS_DIR: Path = TESTCASE_DIR.parent / "helpers"
+BENCHMARK_PROPERTIES: Path = (
+    BENCHMARK_CLONE_DIR / "src" / "main" / "resources" / "benchmark.properties"
+)
+
 ORGANIZER_DIR: Path = REPO_ROOT / "organizer"
 EXPECTED_DIR: Path = ORGANIZER_DIR / "expected"
 EXPECTED_CSV: Path = EXPECTED_DIR / "expectedresults-1.2.csv"
