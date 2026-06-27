@@ -29,14 +29,15 @@ Usage::
 
 from __future__ import annotations
 
+import argparse
 import csv
 import json
 import shutil
 import sys
+from pathlib import Path
 
 from benchmark_common import (
-    PUBLIC_CASES_DIR,
-    REPORT_TEMPLATE,
+    PUBLIC_DIR,
     SELECTED_CASES_CSV,
     TESTCASE_DIR,
 )
@@ -59,34 +60,34 @@ REPORT_TEMPLATE_CONTENT: dict[str, object] = {
 }
 
 
-def read_selected_test_names() -> list[str]:
-    """Read the list of selected test names from ``selected_cases.csv``."""
-    if not SELECTED_CASES_CSV.is_file():
+def read_selected_test_names(selected_csv: Path) -> list[str]:
+    """Read the list of selected test names from a ``selected_cases.csv``."""
+    if not selected_csv.is_file():
         raise FileNotFoundError(
-            f"{SELECTED_CASES_CSV} not found. Run scripts/select_cases.py first."
+            f"{selected_csv} not found. Run scripts/select_cases.py first."
         )
     names: list[str] = []
-    with SELECTED_CASES_CSV.open(newline="", encoding="utf-8") as fh:
+    with selected_csv.open(newline="", encoding="utf-8") as fh:
         reader = csv.DictReader(fh)
         if reader.fieldnames is None or "test_name" not in reader.fieldnames:
-            raise ValueError(f"{SELECTED_CASES_CSV} is missing a 'test_name' column.")
+            raise ValueError(f"{selected_csv} is missing a 'test_name' column.")
         for row in reader:
             name = (row.get("test_name") or "").strip()
             if name:
                 names.append(name)
     if not names:
-        raise ValueError(f"No test names found in {SELECTED_CASES_CSV}.")
+        raise ValueError(f"No test names found in {selected_csv}.")
     return names
 
 
-def reset_public_cases() -> None:
-    """Clear and recreate ``benchmark/public/cases/`` so stale files never leak."""
-    if PUBLIC_CASES_DIR.exists():
-        shutil.rmtree(PUBLIC_CASES_DIR)
-    PUBLIC_CASES_DIR.mkdir(parents=True, exist_ok=True)
+def reset_public_cases(cases_dir: Path) -> None:
+    """Clear and recreate the public ``cases/`` folder so stale files never leak."""
+    if cases_dir.exists():
+        shutil.rmtree(cases_dir)
+    cases_dir.mkdir(parents=True, exist_ok=True)
 
 
-def copy_cases(test_names: list[str]) -> tuple[int, list[str]]:
+def copy_cases(test_names: list[str], cases_dir: Path) -> tuple[int, list[str]]:
     """Copy each selected Java file into the public folder.
 
     Returns ``(copied_count, missing_names)``.
@@ -103,19 +104,19 @@ def copy_cases(test_names: list[str]) -> tuple[int, list[str]]:
         if not source.is_file():
             missing.append(name)
             continue
-        shutil.copy2(source, PUBLIC_CASES_DIR / f"{name}.java")
+        shutil.copy2(source, cases_dir / f"{name}.java")
         copied += 1
     return copied, missing
 
 
-def write_report_template() -> None:
-    REPORT_TEMPLATE.parent.mkdir(parents=True, exist_ok=True)
-    with REPORT_TEMPLATE.open("w", encoding="utf-8") as fh:
+def write_report_template(template_path: Path) -> None:
+    template_path.parent.mkdir(parents=True, exist_ok=True)
+    with template_path.open("w", encoding="utf-8") as fh:
         json.dump(REPORT_TEMPLATE_CONTENT, fh, indent=2)
         fh.write("\n")
 
 
-def write_public_readme(test_names: list[str]) -> None:
+def write_public_readme(test_names: list[str], readme_path: Path) -> None:
     lines = [
         "# Public Benchmark (participant-facing)",
         "",
@@ -142,32 +143,55 @@ def write_public_readme(test_names: list[str]) -> None:
     ]
     lines += [f"- {name}" for name in test_names]
     lines.append("")
-    (PUBLIC_CASES_DIR.parent / "README.md").write_text("\n".join(lines), encoding="utf-8")
+    readme_path.write_text("\n".join(lines), encoding="utf-8")
 
 
-def main() -> int:
+def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "--selected",
+        type=Path,
+        default=SELECTED_CASES_CSV,
+        help="selection CSV to read (default: organizer/selected_cases.csv)",
+    )
+    parser.add_argument(
+        "--public-dir",
+        type=Path,
+        default=PUBLIC_DIR,
+        help="output public folder root (default: benchmark/public)",
+    )
+    return parser.parse_args(argv)
+
+
+def main(argv: list[str] | None = None) -> int:
+    args = parse_args(argv)
+    public_dir: Path = args.public_dir
+    cases_dir = public_dir / "cases"
+    template_path = public_dir / "report_template.json"
+    readme_path = public_dir / "README.md"
+
     try:
-        test_names = read_selected_test_names()
+        test_names = read_selected_test_names(args.selected)
     except (FileNotFoundError, ValueError) as exc:
         print(f"[error] {exc}", file=sys.stderr)
         return 1
 
     try:
-        reset_public_cases()
-        copied, missing = copy_cases(test_names)
+        reset_public_cases(cases_dir)
+        copied, missing = copy_cases(test_names, cases_dir)
     except FileNotFoundError as exc:
         print(f"[error] {exc}", file=sys.stderr)
         return 1
 
-    write_report_template()
-    write_public_readme(test_names)
+    write_report_template(template_path)
+    write_public_readme(test_names, readme_path)
 
-    print(f"[ok] copied {copied}/{len(test_names)} Java cases -> {PUBLIC_CASES_DIR}")
+    print(f"[ok] copied {copied}/{len(test_names)} Java cases -> {cases_dir}")
     if missing:
         print(f"[warn] {len(missing)} case(s) not found in benchmark: {', '.join(missing)}",
               file=sys.stderr)
-    print(f"[ok] wrote {REPORT_TEMPLATE}")
-    print(f"[ok] wrote {PUBLIC_CASES_DIR.parent / 'README.md'}")
+    print(f"[ok] wrote {template_path}")
+    print(f"[ok] wrote {readme_path}")
     print("\nThe public folder is safe to distribute (no answer labels included).")
     return 0 if copied > 0 else 1
 
